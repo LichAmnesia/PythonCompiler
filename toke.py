@@ -21,8 +21,8 @@ import sys
 import getopt
 
 # token 大分類
-TOKEN_STYLE = ['KEY_WORD', 'IDENTIFIER', 'DIGIT_CONSTANT',
-        'OPERATOR','SEPARATOR','STRING_CONSTANT']
+TOKEN_STYLE = ['keyword', 'identifier', 'number',
+        'operator','limiter','CONSTANT']
 # 關鍵字、運算符、分隔符（可以具體指定）進行具體化
 DETAIL_TOKEN_STYLE = {
             'include': 'INCLUDE',
@@ -36,6 +36,8 @@ DETAIL_TOKEN_STYLE = {
             'else': 'ELSE',
             'while': 'WHILE',
             'return': 'RETURN',
+            'function':'FUNCTION',
+            'break':'BREAK',
             '=': 'ASSIGN',
             '&': 'ADDRESS',
             '<': 'LT',
@@ -80,6 +82,7 @@ class Token(object):
     # 記錄分析出來的單詞
     def __init__(self, type_index, value):
         self.type = DETAIL_TOKEN_STYLE[value] if type_index == 0 or type_index == 3 or type_index == 4 else TOKEN_STYLE[type_index]
+        self.dtype = TOKEN_STYLE[type_index]
         self.value = value
 
 def readin():
@@ -272,7 +275,7 @@ class Lexer(object):
                     self.tokens.append(Token(3,content[i] + '='))
                     i = self.skip_blank(i + 2)
                 # 如果是 -2312
-                elif (content[i] == '-' and content[i + 1].isdigit()):
+                elif (content[i-1] =='=' and content[i] == '-' and content[i + 1].isdigit()):
                     temp = '-'
                     i += 1
                     while i < len(content):
@@ -296,7 +299,7 @@ def lexer():
     lexer = Lexer()
     lexer.main()
     for token in lexer.tokens:
-        print '(%s, %s)' % (token.type, token.value)
+        print '(%s, %s)' % (token.dtype, token.value)
 
 class NFA(object):
     def __init__(self):
@@ -490,8 +493,8 @@ class Parser():
 
 
     def get_selectset(self):
-        if self.get_followset(): return False
-        tmp = [0 for i range(110)]
+        if self.get_followset() == False: return False
+        tmp = [0 for i in range(110)]
         for i in range(1,len(self.vn) + 1):
             self.nfa[i].select = []
 
@@ -499,11 +502,12 @@ class Parser():
                 k = 0
                 tmp = [0 for l in range(110)]
                 while k < len(self.nfa[i].production[j]):
-                    s = self.nfa[i].produciton[j][k]
+                    s = self.nfa[i].production[j][k]
                     if s == '$':
                         None
                     elif self.isTerminal(s):
                         tmp[self.vt[s]] = 1
+                        print tmp,self.nfa[i].select
                         self.nfa[i].select.append(tmp)
                         break
                     else:
@@ -520,17 +524,83 @@ class Parser():
                     for l in range(110):
                         tmp[l] |= self.nfa[i].follow[l]
                     self.nfa[i].select.append(tmp)
-        for i in range(1,len(self.vn) + 1):
-            a = 0
-            b = 0
-            for j in range(110):
-                if self.nfa[i].first[j] == 1: a += 1
-                if self.nfa[i].follow[j] == 1: b += 1
-            print a,b
+        #for i in range(1,len(self.vn) + 1):
+        #    a = 0
+        #    b = 0
+        #    for j in range(110):
+        #        if self.nfa[i].first[j] == 1: a += 1
+        #        if self.nfa[i].follow[j] == 1: b += 1
+        #    print a,b
         return True
 
     def build_edge(self):
         if self.get_selectset() == False : return False
+        tmp = [0 for i in range(110)]
+        print "sss"
+        for i in range(1,len(self.vn)+1):
+            self.nfa[i].to = {}
+            for j in range(len(self.nfa[i].production)):
+                #print self.nfa[i].select[j],len(self.nfa[i].select[j]);
+                for l in range(len(self.nfa[i].select[j])):
+                    tmp[l] = self.nfa[i].select[j][l];
+                for k in range(1,len(self.vt) + 1):
+                        if tmp[k]:
+                            if self.nfa[i].to.has_key(k) == True:
+                                print "Not a LL(1) grammer"
+                                print "Error in " , self.nfa[i].name
+                                return False
+                            self.nfa[i].to[k] = j
+        return True
+
+    def compile_lex_table(self):
+        cnt = 0
+        now = 0
+        y = None
+        x = None
+        s1 = None
+        s2 = None
+        st = []
+        st.append('@')
+        st.append('start')
+        while True:
+
+            if now == len(self.tokens): y = '@'
+            else :
+                s1 = self.tokens[now].dtype
+                s2 = self.tokens[now].value
+                y = s1
+                if y == 'keyword' or y == 'operator' or y == 'limiter':
+                    y = s2
+            x = st[len(st)-1]
+            cnt += 1
+
+            while True:
+                x = st[len(st)-1]
+                if self.isTerminal(x) :
+                    if x == y:
+                        st.pop()
+                        break
+                    else:
+                        print 'Syntax Error with in',cnt,'line'
+                        return False
+                else:
+                    id = self.vn[x]
+                    print s1,s2,y,self.vt[y]
+                    if self.nfa[id].to.has_key(self.vt[y]) == True:
+                        k = self.nfa[id].to[self.vt[y]]
+                        st.pop()
+                        j = len(self.nfa[id].production[k]) - 1
+                        while j >= 0:
+                            if self.nfa[id].production[k][j] != '$':
+                                st.append(self.nfa[id].production[k][j])
+                            j -= 1
+                    else :
+                        print '2 Syntax Error with in',cnt,'line'
+                        return False
+                        #for j in range(len(self.nfa[id].production[k])):
+            if y == '@': break
+            now += 1
+        print 'Compiling successfully.'
 
 
     def _init(self,s):
@@ -540,7 +610,7 @@ class Parser():
 
     def syntax_grammar(self,s):
         if self._init(s) == False : return False
-        if self.complie_lex_table() == False : return False
+        if self.compile_lex_table() == False : return False
         return True
 
     # 主程序
