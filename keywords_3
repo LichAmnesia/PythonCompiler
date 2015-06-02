@@ -1,0 +1,17 @@
+A->iB
+B->nC
+C->cD
+D->lE
+E->uF
+F->dG
+G->e
+A->rH
+H->eI
+I->tJ
+J->uK
+K->rL
+L->n
+
+#
+include
+return

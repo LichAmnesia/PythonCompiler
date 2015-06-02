@@ -96,7 +96,7 @@ def readin():
         else:
             None
         cnt += 1
-    #print delimiters
+    print delimiters
     del st
     de_file.close()
 
@@ -203,7 +203,6 @@ class Lexer(object):
         i = 0
         while i < len(content):
             i = self.skip_blank(i)
-
             if content[i] == '#':
                 None
                 #self.tokens.append(Token(4, content[i]))
@@ -225,17 +224,338 @@ class Lexer(object):
                     self.tokens.append(Token(1,temp))
                 i = self.skip_blank(i)
             # 如果數字開頭
-
+            elif content[i].isdigit():
+                temp = ''
+                while i < len(content):
+                    if content[i].isdigit() or (content[i] == '.' and content[i + 1].isdigit()):
+                        temp += content[i]
+                        i += 1
+                    elif not content[i].isdigit():
+                        if content[i] == '.':
+                            print 'float number error!'
+                            exit()
+                        else: break
+                self.print_log('常量',temp)
+                self.tokens.append(Token(2,temp))
+                i = self.skip_blank(i)
+            # 如果是分隔符
+            elif content[i] in delimiters:
+                self.print_log('分隔符', content[i])
+                self.tokens.append(Token(4, content[i]))
+                # 如果是字符串常量
+                if content[i] == '\"':
+                    i += 1
+                    temp = ''
+                    while i < len(content):
+                        if content[i] != '\"':
+                            temp += content[i]
+                            i += 1
+                        else: break
+                    else:
+                        print 'error: lack of \"'
+                        exit()
+                    self.print_log('常量',temp)
+                    self.tokens.append(Token(5,temp))
+                    self.print_log('分隔符','\"')
+                    self.tokens.append(Token(4,'\"'))
+                i = self.skip_blank(i + 1)
+            # 如果是運算符
+            elif content[i] in operators:
+                # 如果是 ++ 或者 --
+                if (content[i] == '+' or content[i] == '_') and content[i + 1] == content[i]:
+                    self.print_log('運算符', content[i] * 2)
+                    self.tokens.append(Token(3,content[i] * 2))
+                    i = self.skip_blank(i + 2)
+                # 如果是>= 或者 <=
+                elif (content[i] == '>' or content[i] == '<') and content[i + 1] == '=':
+                    self.print_log('運算符',content[i] + '=')
+                    self.tokens.append(Token(3,content[i] + '='))
+                    i = self.skip_blank(i + 2)
+                # 如果是 -2312
+                elif (content[i] == '-' and content[i + 1].isdigit()):
+                    temp = '-'
+                    i += 1
+                    while i < len(content):
+                        if content[i].isdigit() or (content[i] == '.' or content[i + 1].isdigit()):
+                            temp += content[i]
+                            i += 1
+                        elif not content[i].isdigit():
+                            if content[i] == '.':
+                                print 'negative float number error!'
+                                exit()
+                            else: break
+                    self.print_log('常量',temp)
+                    self.tokens.append(Token(2,temp))
+                    i = self.skip_blank(i)
+                # 其他
+                else:
+                    self.print_log('運算符',content[i])
+                    self.tokens.append(Token(3,content[i]))
+                    i = self.skip_blank(i + 1)
 def lexer():
     lexer = Lexer()
     lexer.main()
     for token in lexer.tokens:
         print '(%s, %s)' % (token.type, token.value)
 
+class NFA(object):
+    def __init__(self):
+        self.name = None
+        self.first = [0 for i in range(110)]
+        self.follow = [0 for i in range(110)]
+        self.edge = []
+        self.to = {}
+        self.production = []
+        self.select = []
+
+
+class Parser():
+    def __init__(self):
+        lexer = Lexer()
+        lexer.main()
+        self.tokens = lexer.tokens
+        self.index = 0
+
+        self.keyword = []
+        self.vt = {}
+        self.vn = {}
+        self.nfa = [NFA() for i in range(105)]
+        start = 0
+
+    def read_grammar(self,filename):
+        fin = open(filename,'r')
+        lines = [line.strip() for line in fin.readlines()]
+        allwords = []
+        for i in lines:
+            if i == '': continue
+            word = i.split(' ')
+            for j in word:
+                if j == '': continue
+                allwords.append(j)
+        fin.close()
+        self.keyword = []
+        tmp = []
+        self.vn = {}
+        now = 0
+        i = 0
+        while i < len(allwords):
+            s1 = allwords[i]
+            #print i
+            if i + 1 < len(allwords) and allwords[i + 1] == ':' :
+                if self.vn.has_key(s1) == True:
+                    now = self.vn[s1]
+                else :
+                    now += 1
+                    self.vn[s1] = now
+                    print now
+                    self.nfa[now].name = s1
+                    self.nfa[now].production = []
+            else:
+                tmp = []
+                tmp.append(s1)
+
+                while 1 :
+                    if i + 1 >= len(allwords): break
+                    if i + 1 < len(allwords) and (allwords[i + 1] == '|' or allwords[i + 1] == '\\' ):
+                        break
+                    tmp.append(allwords[i + 1])
+                    i += 1
+                    #print tmp
+                self.nfa[now].production.append(tmp)
+                #print self.nfa[now].production
+            i += 2
+        self.get_terminal()
+        return
+
+    def get_terminal(self):
+        self.vt = {}
+        #print len(self.vn)
+        for i in range(1,len(self.vn) + 1):
+            for j in range(len(self.nfa[i].production)):
+                for k in range(len(self.nfa[i].production[j])):
+                    s = self.nfa[i].production[j][k]
+                    if self.isTerminal(s) and self.vt.has_key(s) == False:
+                        tmp = len(self.vt)
+                        self.vt[s] = tmp + 1
+                        print tmp,s
+        #print len(self.vn), len(self.vt)
+        #print self.vn.keys()
+        #for i in range(1,len(self.vn) + 1):
+
+    def isTerminal(self,s):
+        if self.vn.has_key(s) == False: return True
+        return False
+
+
+    def get_firstset(self):
+        for i in range(1,len(self.vn) + 1):
+            self.nfa[i].first = [0 for j in range(110)]
+        tmp = [0 for i in range(110)]
+        cnt = 0
+        while True :
+            flag = False
+            cnt += 1
+            #print cnt,'cnt'
+            for i in range(1,len(self.vn) + 1):
+                tmp = [0 for j in range(110)]
+                for j in range(110):
+                    tmp[j] = self.nfa[i].first[j]
+                for j in range(len(self.nfa[i].production)):
+                    k = 0
+                    while k < len(self.nfa[i].production[j]) :
+                        s = self.nfa[i].production[j][k]
+                        #print cnt,k
+                        #print cnt,s,k
+                        if self.isTerminal(s):
+                            self.nfa[i].first[self.vt[s]] = 1
+                            break
+                        else :
+                            id = self.vn[s]
+
+                            for l in range(110):
+                                self.nfa[i].first[l] |= self.nfa[id].first[l]
+                            #print self.nfa[i].first
+                            #print tmp
+                            if self.nfa[id].first[self.vt['$']]:
+                                self.nfa[i].first[self.vt['$']] = 0
+                            else: break
+                        k += 1
+                    if k == len(self.nfa[i].production[j]):
+                        self.nfa[i].first[vt['$']] = 1
+                #print tmp, self.nfa[i].first
+                if flag == False and tmp != self.nfa[i].first:
+                    flag = True
+            if flag == False: break
+
+    def get_followset(self):
+        if self.get_firstset(): return False
+        start = -1
+        for i in range(1,len(self.vn) + 1):
+            if self.nfa[i].name == 'start':
+                start = i
+                break
+
+        if start == -1:
+            print "Your grammer should have a non-ternimal 'start' as a start."
+            return False
+        #add @ of end
+        for i in range(1,len(self.vn) + 1):
+            self.nfa[i].follow = [0 for j in range(110)]
+        sz = len(self.vt)
+        #print sz
+        self.vt['@'] = sz + 1
+        self.nfa[start].follow[self.vt['@']] = 1
+
+        tmp = [0 for i in range(110)]
+        while True:
+            flag = False
+            for i in range(1,len(self.vn) + 1):
+                for j in range(len(self.nfa[i].production)):
+                    for k in range(len(self.nfa[i].production[j])):
+                        s = self.nfa[i].production[j][k]
+                        if self.isTerminal(s) == False:
+                            id = self.vn[s];
+                            for l in range(110):
+                                tmp[l] = self.nfa[id].follow[l]
+
+                            h = k + 1
+                            while h < len(self.nfa[i].production[j]) :
+                                s = self.nfa[i].production[j][h];
+                                if self.isTerminal(s):
+                                    self.nfa[id].follow[self.vt[s]] = 1
+                                    break
+                                else :
+                                    kk = self.vn[s]
+                                    for l in range(110):
+                                        self.nfa[id].follow[l] |= self.nfa[kk].first[l]
+                                    if self.nfa[kk].first[self.vt['$']]:
+                                        self.nfa[id].follow[self.vt['$']] = 0
+                                    else : break
+                                h += 1
+                            if h == len(self.nfa[i].production[j]):
+                                for l in range(110):
+                                    self.nfa[id].follow[l] |= self.nfa[i].follow[l]
+                            if flag == False and self.nfa[id].follow != tmp:
+                                flag = True
+            if flag == False: break
+
+        #for i in range(1,len(self.vn) + 1):
+        #    a = 0
+        #    b = 0
+        #    for j in range(110):
+        #        if self.nfa[i].first[j] == 1: a += 1
+        #        if self.nfa[i].follow[j] == 1: b += 1
+        #    print a,b
+        return True
+
+
+    def get_selectset(self):
+        if self.get_followset(): return False
+        tmp = [0 for i range(110)]
+        for i in range(1,len(self.vn) + 1):
+            self.nfa[i].select = []
+
+            for j in range(len(self.nfa[i].production)):
+                k = 0
+                tmp = [0 for l in range(110)]
+                while k < len(self.nfa[i].production[j]):
+                    s = self.nfa[i].produciton[j][k]
+                    if s == '$':
+                        None
+                    elif self.isTerminal(s):
+                        tmp[self.vt[s]] = 1
+                        self.nfa[i].select.append(tmp)
+                        break
+                    else:
+                        id = self.vn[s]
+                        for l in range(110):
+                            tmp[l] |= self.nfa[id].first[l]
+                        if self.nfa[id].first[self.vt['$']]:
+                            tmp[self.vt['$']] = 0
+                        else :
+                            self.nfa[i].select.append(tmp)
+                            break
+                    k += 1
+                if k == len(self.nfa[i].production[j]):
+                    for l in range(110):
+                        tmp[l] |= self.nfa[i].follow[l]
+                    self.nfa[i].select.append(tmp)
+        for i in range(1,len(self.vn) + 1):
+            a = 0
+            b = 0
+            for j in range(110):
+                if self.nfa[i].first[j] == 1: a += 1
+                if self.nfa[i].follow[j] == 1: b += 1
+            print a,b
+        return True
+
+    def build_edge(self):
+        if self.get_selectset() == False : return False
+
+
+    def _init(self,s):
+        if self.read_grammar(s) == False: return False
+        if self.build_edge() == False: return False
+        return True
+
+    def syntax_grammar(self,s):
+        if self._init(s) == False : return False
+        if self.complie_lex_table() == False : return False
+        return True
+
+    # 主程序
+    def main(self):
+        # 根節點
+        if self.syntax_grammar("syntax_grammar") == True :
+            print "YES"
+        else :
+            print "NO"
+
 def parser():
     parser = Parser()
     parser.main()
-    parser.display(parser.tree.root)
+
+    #parser.display(parser.tree.root)
 
 
 if __name__ == '__main__':
@@ -256,5 +576,5 @@ if __name__ == '__main__':
             content = source_file.read()
         elif opt == '-l':
             lexer()
-        #elif opt == '-p':
-         #   parser()
+        elif opt == '-p':
+            parser()
