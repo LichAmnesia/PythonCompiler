@@ -1,0 +1,450 @@
+(關鍵字, int)
+(標識符, a)
+(分隔符, ,)
+(標識符, b)
+(運算符, =)
+(常量, 2e4)
+(分隔符, ,)
+(標識符, c)
+(運算符, =)
+(常量, -24)
+(分隔符, ;)
+(關鍵字, function)
+(關鍵字, int)
+(標識符, main)
+(分隔符, ()
+(分隔符, ))
+(分隔符, {)
+(關鍵字, double)
+(標識符, sum_1_to_50)
+(運算符, =)
+(常量, 0)
+(分隔符, ;)
+(關鍵字, for)
+(分隔符, ()
+(關鍵字, int)
+(標識符, i)
+(運算符, =)
+(常量, 1)
+(分隔符, ;)
+(標識符, i)
+(運算符, <)
+(常量, 100)
+(分隔符, ;)
+(標識符, i)
+(運算符, +)
+(運算符, =)
+(常量, 1)
+(分隔符, ))
+(分隔符, {)
+(關鍵字, if)
+(分隔符, ()
+(標識符, i)
+(運算符, <)
+(常量, 50)
+(分隔符, ))
+(關鍵字, break)
+(分隔符, ;)
+(關鍵字, else)
+(標識符, sum_1_to_50)
+(運算符, +)
+(運算符, =)
+(標識符, i)
+(分隔符, ;)
+(分隔符, })
+(關鍵字, int)
+(標識符, k)
+(運算符, =)
+(常量, 0)
+(分隔符, ,)
+(標識符, s)
+(運算符, =)
+(分隔符, ()
+(分隔符, ()
+(常量, 534)
+(運算符, -)
+(常量, 23)
+(分隔符, ))
+(運算符, +)
+(常量, 423)
+(分隔符, ))
+(運算符, *)
+(常量, 23)
+(分隔符, ;)
+(關鍵字, while)
+(分隔符, ()
+(標識符, k)
+(運算符, <)
+(常量, 40)
+(分隔符, ))
+(標識符, s)
+(運算符, +)
+(運算符, =)
+(常量, 1)
+(分隔符, ;)
+(關鍵字, int)
+(標識符, A)
+(運算符, =)
+(常量, 50)
+(分隔符, ,)
+(標識符, B)
+(運算符, =)
+(常量, 23)
+(分隔符, ,)
+(標識符, C)
+(運算符, =)
+(常量, 22)
+(分隔符, ;)
+(關鍵字, return)
+(常量, 0)
+(分隔符, ;)
+(分隔符, })
+0 identifier
+1 number
+2 (
+3 )
+4 +
+5 -
+6 *
+7 /
+8 %
+9 <
+10 >
+11 $
+12 =
+13 ,
+14 function
+15 char
+16 int
+17 double
+18 ;
+19 print
+20 scan
+21 continue
+22 break
+23 return
+24 if
+25 else
+26 while
+27 for
+28 {
+29 }
+
+
+
+---------First---------
+primary_expression             identifier number ( 
+operator                       + - * / % < > 
+arithmetic_expression          + - * / % < > $ 
+constant_expression            identifier number ( 
+assignment_operator            + - * / % = 
+assignment_expression          identifier 
+assignment_expression_profix   $ , 
+assignment_expression_list     identifier $ 
+function_expression            function 
+expression                     identifier number ( function 
+expression_profix              $ , 
+expression_list                identifier number ( $ function 
+type_specifier                 char int double 
+declaration_assign             $ = 
+declaration_init               identifier 
+declaration_init_list          $ , 
+declaration                    char int double 
+function_declaration           char int double 
+function_declaration_suffix    $ , 
+function_declaration_list      $ char int double 
+function_definition            function 
+statement                      identifier char int double ; print scan continue break return if while for { 
+statement_list                 identifier $ char int double ; print scan continue break return if while for { 
+expression_statement           identifier ; print scan 
+jump_statement                 continue break return 
+selection_statement            if 
+iteration_statement            while for 
+compound_statement             { 
+external_declaration           function char int double 
+start                          $ function char int double 
+
+
+
+---------Follow---------
+primary_expression             ) + - * / % < > , ; 
+operator                       identifier number ( 
+arithmetic_expression          ) , ; 
+constant_expression            ) , ; 
+assignment_operator            identifier number ( function 
+assignment_expression          ) , ; 
+assignment_expression_profix   ; 
+assignment_expression_list     ; 
+function_expression            ) , ; 
+expression                     ) , ; 
+expression_profix              ) 
+expression_list                ) 
+type_specifier                 identifier 
+declaration_assign             , ; 
+declaration_init               , ; 
+declaration_init_list          ; 
+declaration                    identifier number ( function char int double ; print scan continue break return if else while for { } 0 
+function_declaration           ) , 
+function_declaration_suffix    ) 
+function_declaration_list      ) 
+function_definition            function char int double 0 
+statement                      identifier char int double ; print scan continue break return if else while for { } 
+statement_list                 } 
+expression_statement           identifier char int double ; print scan continue break return if else while for { } 
+jump_statement                 identifier char int double ; print scan continue break return if else while for { } 
+selection_statement            identifier char int double ; print scan continue break return if else while for { } 
+iteration_statement            identifier char int double ; print scan continue break return if else while for { } 
+compound_statement             identifier function char int double ; print scan continue break return if else while for { } 0 
+external_declaration           function char int double 0 
+start                          0 
+
+
+
+----select-----
+primary_expression-> identifier || identifier 
+primary_expression-> number || number 
+primary_expression-> ( expression ) || ( 
+operator-> + || + 
+operator-> - || - 
+operator-> * || * 
+operator-> / || / 
+operator-> % || % 
+operator-> < || < 
+operator-> > || > 
+arithmetic_expression-> operator primary_expression arithmetic_expression || + - * / % < > 
+arithmetic_expression-> $ || ) , ; 
+constant_expression-> primary_expression arithmetic_expression || identifier number ( 
+assignment_operator-> = || = 
+assignment_operator-> + = || + 
+assignment_operator-> - = || - 
+assignment_operator-> * = || * 
+assignment_operator-> / = || / 
+assignment_operator-> % = || % 
+assignment_expression-> identifier assignment_operator expression || identifier 
+assignment_expression_profix-> , assignment_expression assignment_expression_profix || , 
+assignment_expression_profix-> $ || ; 
+assignment_expression_list-> assignment_expression assignment_expression_profix || identifier 
+assignment_expression_list-> $ || ; 
+function_expression-> function identifier ( expression_list ) || function 
+expression-> constant_expression || identifier number ( 
+expression-> function_expression || function 
+expression_profix-> , expression expression_profix || , 
+expression_profix-> $ || ) 
+expression_list-> expression expression_profix || identifier number ( function 
+expression_list-> $ || ) 
+type_specifier-> char || char 
+type_specifier-> int || int 
+type_specifier-> double || double 
+declaration_assign-> = expression || = 
+declaration_assign-> $ || , ; 
+declaration_init-> identifier declaration_assign || identifier 
+declaration_init_list-> , declaration_init declaration_init_list || , 
+declaration_init_list-> $ || ; 
+declaration-> type_specifier declaration_init declaration_init_list ; || char int double 
+function_declaration-> type_specifier identifier || char int double 
+function_declaration_suffix-> , function_declaration function_declaration_suffix || , 
+function_declaration_suffix-> $ || ) 
+function_declaration_list-> function_declaration function_declaration_suffix || char int double 
+function_declaration_list-> $ || ) 
+function_definition-> function type_specifier identifier ( function_declaration_list ) compound_statement || function 
+statement-> expression_statement || identifier ; print scan 
+statement-> jump_statement || continue break return 
+statement-> selection_statement || if 
+statement-> iteration_statement || while for 
+statement-> compound_statement || { 
+statement-> declaration || char int double 
+statement_list-> statement statement_list || identifier char int double ; print scan continue break return if while for { 
+statement_list-> $ || } 
+expression_statement-> assignment_expression_list ; || identifier ; 
+expression_statement-> print ( expression ) ; || print 
+expression_statement-> scan ( identifier ) ; || scan 
+jump_statement-> continue ; || continue 
+jump_statement-> break ; || break 
+jump_statement-> return expression ; || return 
+selection_statement-> if ( expression ) statement else statement || if 
+iteration_statement-> while ( expression ) statement || while 
+iteration_statement-> for ( declaration expression ; assignment_expression ) statement || for 
+compound_statement-> { statement_list } || { 
+external_declaration-> function_definition || function 
+external_declaration-> declaration || char int double 
+start-> external_declaration start || function char int double 
+start-> $ || 0 
+keyword int int 17
+keyword int int 17
+keyword int int 17
+keyword int int 17
+identifier a identifier 1
+limiter , , 14
+limiter , , 14
+identifier b identifier 1
+operator = = 13
+number 2e4 number 2
+number 2e4 number 2
+number 2e4 number 2
+limiter , , 14
+limiter , , 14
+identifier c identifier 1
+operator = = 13
+number -24 number 2
+number -24 number 2
+number -24 number 2
+limiter ; ; 19
+limiter ; ; 19
+keyword function function 15
+keyword function function 15
+keyword function function 15
+keyword int int 17
+limiter ) ) 4
+limiter { { 29
+keyword double double 18
+keyword double double 18
+keyword double double 18
+keyword double double 18
+identifier sum_1_to_50 identifier 1
+operator = = 13
+number 0 number 2
+number 0 number 2
+number 0 number 2
+limiter ; ; 19
+limiter ; ; 19
+keyword for for 28
+keyword for for 28
+keyword for for 28
+keyword int int 17
+keyword int int 17
+identifier i identifier 1
+operator = = 13
+number 1 number 2
+number 1 number 2
+number 1 number 2
+limiter ; ; 19
+limiter ; ; 19
+identifier i identifier 1
+identifier i identifier 1
+identifier i identifier 1
+operator < < 10
+operator < < 10
+number 100 number 2
+limiter ; ; 19
+identifier i identifier 1
+operator + + 5
+number 1 number 2
+number 1 number 2
+number 1 number 2
+limiter ) ) 4
+limiter { { 29
+limiter { { 29
+keyword if if 25
+keyword if if 25
+keyword if if 25
+identifier i identifier 1
+identifier i identifier 1
+identifier i identifier 1
+operator < < 10
+operator < < 10
+number 50 number 2
+limiter ) ) 4
+keyword break break 23
+keyword break break 23
+identifier sum_1_to_50 identifier 1
+identifier sum_1_to_50 identifier 1
+identifier sum_1_to_50 identifier 1
+identifier sum_1_to_50 identifier 1
+operator + + 5
+identifier i identifier 1
+identifier i identifier 1
+identifier i identifier 1
+limiter ; ; 19
+limiter ; ; 19
+limiter } } 30
+keyword int int 17
+keyword int int 17
+keyword int int 17
+keyword int int 17
+identifier k identifier 1
+operator = = 13
+number 0 number 2
+number 0 number 2
+number 0 number 2
+limiter , , 14
+limiter , , 14
+identifier s identifier 1
+operator = = 13
+limiter ( ( 3
+limiter ( ( 3
+limiter ( ( 3
+limiter ( ( 3
+limiter ( ( 3
+limiter ( ( 3
+number 534 number 2
+number 534 number 2
+number 534 number 2
+operator - - 6
+operator - - 6
+number 23 number 2
+limiter ) ) 4
+operator + + 5
+operator + + 5
+number 423 number 2
+limiter ) ) 4
+operator * * 7
+operator * * 7
+number 23 number 2
+limiter ; ; 19
+limiter ; ; 19
+keyword while while 27
+keyword while while 27
+keyword while while 27
+identifier k identifier 1
+identifier k identifier 1
+identifier k identifier 1
+operator < < 10
+operator < < 10
+number 40 number 2
+limiter ) ) 4
+identifier s identifier 1
+identifier s identifier 1
+identifier s identifier 1
+identifier s identifier 1
+operator + + 5
+number 1 number 2
+number 1 number 2
+number 1 number 2
+limiter ; ; 19
+limiter ; ; 19
+keyword int int 17
+keyword int int 17
+keyword int int 17
+keyword int int 17
+identifier A identifier 1
+operator = = 13
+number 50 number 2
+number 50 number 2
+number 50 number 2
+limiter , , 14
+limiter , , 14
+identifier B identifier 1
+operator = = 13
+number 23 number 2
+number 23 number 2
+number 23 number 2
+limiter , , 14
+limiter , , 14
+identifier C identifier 1
+operator = = 13
+number 22 number 2
+number 22 number 2
+number 22 number 2
+limiter ; ; 19
+limiter ; ; 19
+keyword return return 24
+keyword return return 24
+keyword return return 24
+number 0 number 2
+number 0 number 2
+number 0 number 2
+limiter ; ; 19
+limiter } } 30
+limiter } @ 31
+Compiling successfully.
+YES

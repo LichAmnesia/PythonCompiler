@@ -1,4 +1,4 @@
-int a , b = 234 , c = 24;
+int a , b = 2e4 , c =-24;
 
 function int main(){
 
